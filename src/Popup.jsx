@@ -3,67 +3,63 @@ import Summarization from "./components/Summarization";
 import TextToSpeech from "./components/TextToSpeech";
 
 const Popup = () => {
-  const [screen, setScreen] = useState("main");
-  const [font, setFont] = useState("");
-  const [spacing, setSpacing] = useState("");
+  const [font, setFont] = useState("OpenDyslexic");
+  const [spacing, setSpacing] = useState(1);
   const [bgColor, setBgColor] = useState("#ffffff");
+  const [textColor, setTextColor] = useState("#000000");
+  const [screen, setScreen] = useState("main");
+  
 
   const applyChanges = () => {
-    chrome.storage.sync.set({ font, spacing, bgColor }, () => {
+    chrome.storage.sync.set({ font, spacing, bgColor, textColor }, () => {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        chrome.tabs.sendMessage(tabs[0].id, {
-          action: "apply",
-          font,
-          spacing,
-          bgColor,
-        });
+        chrome.tabs.sendMessage(tabs[0].id, { action: "apply", font, spacing, bgColor, textColor });
+
       });
     });
   };
 
   const resetChanges = () => {
-    chrome.storage.sync.remove(["font", "spacing", "bgColor"], () => {
+    chrome.storage.sync.remove(["font", "spacing", "bgColor", "textColor"], () => {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         chrome.tabs.sendMessage(tabs[0].id, { action: "reset" });
       });
     });
-    setFont("");
-    setSpacing("");
+
+    setFont("OpenDyslexic");
+    setSpacing(1);
     setBgColor("#ffffff");
+    setTextColor("#000000");
   };
 
   return (
-    <div style={{ padding: "10px", width: "250px" }}>
-      {screen === "main" ? (
-        <>
-          <h2>Dyslexia Helper</h2>
+    <div style={{ padding: "15px", width: "250px", fontFamily: "Arial" }}>
+      <h2 style={{ fontSize: "18px", marginBottom: "10px" }}>Readable</h2>
+      
+      <label>Font:</label>
+      <select value={font} onChange={(e) => setFont(e.target.value)} style={{ width: "100%", marginBottom: "10px" }}>
+        <option value="Arial">Arial</option>
+        <option value="Comic Sans MS">Comic Sans</option>
+        <option value="OpenDyslexic">OpenDyslexic</option>
+      </select>
 
-          <label>Font:</label>
-          <select value={font} onChange={(e) => setFont(e.target.value)}>
-            <option value="">Default</option>
-            <option value="Arial">Arial</option>
-            <option value="Comic Sans MS">Comic Sans</option>
-            <option value="OpenDyslexic">OpenDyslexic</option>
-          </select>
+      <label>Letter Spacing ({spacing}px):</label>
+      <input type="range" min="0" max="5" step="0.5" value={spacing} onChange={(e) => setSpacing(e.target.value)} style={{ width: "100%" }} />
+      
+      <label>Background Color:</label>
+      <input type="color" value={bgColor} onChange={(e) => setBgColor(e.target.value)} style={{ width: "100%", marginBottom: "10px" }} />
+      
+      <label>Text Color:</label>
+      <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} style={{ width: "100%", marginBottom: "10px" }} />
 
-          <label>Letter Spacing (px):</label>
-          <input
-            type="number"
-            value={spacing}
-            onChange={(e) => setSpacing(e.target.value)}
-          />
+      <h4>Preview</h4>
+      <div style={{ padding: "10px", backgroundColor: bgColor, color: textColor, fontFamily: font, letterSpacing: `${spacing}px`, border: "1px solid #ccc", borderRadius: "5px" }}>
+        This is a preview of how text will appear with your selected settings.
+      </div>
+      
+      <button onClick={applyChanges} style={{ width: "100%", marginTop: "10px" }}>Apply</button>
+      <button onClick={resetChanges} style={{ width: "100%", marginTop: "5px" }}>Reset</button>
 
-          <label>Background Color:</label>
-          <input
-            type="color"
-            value={bgColor}
-            onChange={(e) => setBgColor(e.target.value || "#ffffff")}
-          />
-
-          <button onClick={applyChanges}>Apply</button>
-          <button onClick={resetChanges} style={{ marginLeft: "5px" }}>
-            Reset
-          </button>
 
           <hr />
 
