@@ -1,1 +1,1 @@
-# A dyslexia friendly Chrome Eextension
+# A dyslexia friendly Chrome Extension
