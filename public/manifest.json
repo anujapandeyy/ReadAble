@@ -5,7 +5,10 @@
   "description": "A dyslexia friendly Chrome Extension",
   "manifest_version": 3,
   "permissions": ["storage", "scripting", "activeTab"],
-    "host_permissions": ["<all_urls>"],
+    "host_permissions": [
+        "http://*/*",
+        "https://*/*"
+        ],
     "action": {
       "default_popup": "index.html"
     },
