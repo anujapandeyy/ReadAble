@@ -1,15 +1,20 @@
 import { useState } from "react";
+import Summarization from "./components/Summarization";
+import TextToSpeech from "./components/TextToSpeech";
 
 const Popup = () => {
   const [font, setFont] = useState("OpenDyslexic");
   const [spacing, setSpacing] = useState(1);
   const [bgColor, setBgColor] = useState("#ffffff");
   const [textColor, setTextColor] = useState("#000000");
+  const [screen, setScreen] = useState("main");
+  
 
   const applyChanges = () => {
     chrome.storage.sync.set({ font, spacing, bgColor, textColor }, () => {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         chrome.tabs.sendMessage(tabs[0].id, { action: "apply", font, spacing, bgColor, textColor });
+
       });
     });
   };
@@ -20,6 +25,7 @@ const Popup = () => {
         chrome.tabs.sendMessage(tabs[0].id, { action: "reset" });
       });
     });
+
     setFont("OpenDyslexic");
     setSpacing(1);
     setBgColor("#ffffff");
@@ -53,6 +59,26 @@ const Popup = () => {
       
       <button onClick={applyChanges} style={{ width: "100%", marginTop: "10px" }}>Apply</button>
       <button onClick={resetChanges} style={{ width: "100%", marginTop: "5px" }}>Reset</button>
+
+
+          <hr />
+
+          {/* Navigation Buttons */}
+          <button onClick={() => setScreen("summarization")}>
+            Summarize Text
+          </button>
+          <button
+            onClick={() => setScreen("textToSpeech")}
+            style={{ marginLeft: "5px" }}
+          >
+            Text to Speech
+          </button>
+        </>
+      ) : screen === "summarization" ? (
+        <Summarization goBack={() => setScreen("main")} />
+      ) : (
+        <TextToSpeech goBack={() => setScreen("main")} />
+      )}
     </div>
   );
 };
