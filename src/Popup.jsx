@@ -73,12 +73,11 @@ const Popup = () => {
           >
             Text to Speech
           </button>
-        </>
-      ) : screen === "summarization" ? (
+       : screen === "summarization" ? (
         <Summarization goBack={() => setScreen("main")} />
       ) : (
         <TextToSpeech goBack={() => setScreen("main")} />
-      )}
+      )
     </div>
   );
 };
