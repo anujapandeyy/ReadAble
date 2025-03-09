@@ -1,4 +1,4 @@
-const styleId = "dyslexia-helper-style"; // Unique ID for the style tag
+const styleId = "dyslexia-helper-style";
 
 function applyStyles(font, spacing, bgColor, textColor) {
   let styleTag = document.getElementById(styleId);
@@ -13,18 +13,21 @@ function applyStyles(font, spacing, bgColor, textColor) {
         font-family: ${font || "inherit"} !important;
         letter-spacing: ${spacing ? spacing + "px" : "normal"} !important;
         background-color: ${bgColor || "#ffffff"} !important;
-        color: ${textColor || "#000000"} !important; /* Default to black */
+        color: ${textColor || "#000000"} !important;
       }
-    `;
+  `;
 }
 
-// Load settings from storage and apply them
-chrome.storage.sync.get(
-  ["font", "spacing", "bgColor", "textColor"], // Include textColor
-  ({ font, spacing, bgColor, textColor }) => {
+// Get the current domain
+const domain = window.location.hostname;
+
+// Load settings for this domain only
+chrome.storage.sync.get(domain, (data) => {
+  if (data[domain]) {
+    const { font, spacing, bgColor, textColor } = data[domain];
     applyStyles(font, spacing, bgColor, textColor);
   }
-);
+});
 
 // Listen for changes from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -32,7 +35,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     applyStyles(request.font, request.spacing, request.bgColor, request.textColor);
   } else if (request.action === "reset") {
     const styleTag = document.getElementById(styleId);
-    if (styleTag) styleTag.remove(); // Remove injected styles
+    if (styleTag) styleTag.remove();
     sendResponse({ status: "reset done" });
   }
 });

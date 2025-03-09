@@ -10,8 +10,11 @@ const Popup = () => {
   const [screen, setScreen] = useState("main");
 
   const applyChanges = () => {
-    chrome.storage.sync.set({ font, spacing, bgColor, textColor }, () => {
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const url = new URL(tabs[0].url);
+      const domain = url.hostname; // Get the domain name
+  
+      chrome.storage.sync.set({ [domain]: { font, spacing, bgColor, textColor } }, () => {
         chrome.tabs.sendMessage(tabs[0].id, {
           action: "apply",
           font,
@@ -22,23 +25,22 @@ const Popup = () => {
       });
     });
   };
-
+  
   const resetChanges = () => {
-    chrome.storage.sync.remove(
-      ["font", "spacing", "bgColor", "textColor"],
-      () => {
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          chrome.tabs.sendMessage(tabs[0].id, { action: "reset" });
-        });
-      }
-    );
-
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const url = new URL(tabs[0].url);
+      const domain = url.hostname;
+  
+      chrome.storage.sync.remove(domain, () => {
+        chrome.tabs.sendMessage(tabs[0].id, { action: "reset" });
+      });
+    });
+  
     setFont("OpenDyslexic");
     setSpacing(1);
     setBgColor("#ffffff");
     setTextColor("#000000");
   };
-
   return (
     <div style={{ padding: "15px", width: "250px", fontFamily: "Arial" }}>
       {screen === "main" && (
