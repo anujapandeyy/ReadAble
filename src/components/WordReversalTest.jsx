@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const WordReversalTest = ({ goBack, updateSeverity }) => {
+const WordReversalTest = ({ goBack }) => {
   const words = ["apple", "banana", "cherry", "grape", "orange", "mango", "peach", "melon", "berry", "plum"];
   const reversedWords = words.map(word => word.split("").reverse().join(""));
 
@@ -10,18 +10,20 @@ const WordReversalTest = ({ goBack, updateSeverity }) => {
   const [correctWord, setCorrectWord] = useState("");
   const [options, setOptions] = useState([]);
   const [startTime, setStartTime] = useState(null);
-  const [severityScore, setSeverityScore] = useState(50); // Default severity
+  const [totalScore, setTotalScore] = useState(0);
   const [completed, setCompleted] = useState(false);
 
   const startTest = () => {
     setTestStarted(true);
     setCurrentQuestion(0);
+    setTotalScore(0); // Reset score for a new test
     generateQuestion(0);
   };
 
   const generateQuestion = (index) => {
     if (index >= 5) {
       setCompleted(true);
+      localStorage.setItem("finalWordReversalScore", totalScore); // Save final score
       return;
     }
 
@@ -45,16 +47,30 @@ const WordReversalTest = ({ goBack, updateSeverity }) => {
   const checkAnswer = (selected) => {
     let endTime = Date.now();
     let reactionTime = (endTime - startTime) / 1000;
-
     let isCorrect = selected === correctWord;
-    alert(isCorrect ? `✅ Correct! Time: ${reactionTime}s` : `❌ Wrong! It was ${correctWord}`);
+    let score = 0;
 
-    let score = isCorrect ? Math.max(0, 10 - reactionTime) * 10 : 0;
+    if (isCorrect) {
+      if (reactionTime <= 2) {
+        score = 4;
+      } else if (reactionTime <= 5) {
+        score = 3;
+      } else if (reactionTime <= 8) {
+        score = 2;
+      } else if (reactionTime <= 10) {
+        score = 1;
+      }
+    }
 
-    let newSeverityScore = severityScore + (isCorrect ? -5 : 10);
-    setSeverityScore(newSeverityScore);
-    chrome.storage.local.set({ wordReversalScore: newSeverityScore });
-    updateSeverity(newSeverityScore);
+    alert(isCorrect ? `✅ Correct! You earned ${score} marks. Time: ${reactionTime}s` : `❌ Wrong! It was ${correctWord}. You earned 0 marks.`);
+
+    setTotalScore(prev => {
+      const newScore = prev + score;
+      if (currentQuestion === 4) {
+        localStorage.setItem("finalWordReversalScore", newScore); // Save only after the last question
+      }
+      return newScore;
+    });
 
     if (currentQuestion < 4) {
       setCurrentQuestion(prev => prev + 1);
@@ -72,7 +88,7 @@ const WordReversalTest = ({ goBack, updateSeverity }) => {
       ) : completed ? (
         <div>
           <h3>Test Completed!</h3>
-          <p>Final Severity Score: <strong>{severityScore}</strong></p>
+          <p>Final Score: <strong>{totalScore} / 20</strong></p>
           <button onClick={goBack}>Go Back</button>
         </div>
       ) : (
@@ -86,7 +102,7 @@ const WordReversalTest = ({ goBack, updateSeverity }) => {
           ))}
         </div>
       )}
-      <p>Current Severity Score: <strong>{severityScore}</strong></p>
+      <p>Current Score: <strong>{totalScore} / 20</strong></p>
     </div>
   );
 };

@@ -16,6 +16,17 @@ const Popup = () => {
   const [severity, setSeverity] = useState(50);
   const [screen, setScreen] = useState("main");
 
+
+  // Retrieve scores from localStorage and convert them to numbers
+const savedScore = parseInt(localStorage.getItem("finalWordReversalScore")) || 0;
+const finalConfusedScore = parseInt(localStorage.getItem("confusableLetterScore")) || 0;
+const finalReadingScore = parseInt(localStorage.getItem("readingScore")) || 0;
+
+// Calculate the average score
+const totalTests = 3; // Number of tests
+const averageScore = ((savedScore + finalConfusedScore + finalReadingScore) / totalTests).toFixed(2);
+
+
   const applyChanges = () => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const url = new URL(tabs[0].url);
@@ -63,12 +74,7 @@ const Popup = () => {
     });
   }, []);
 
-  const updateWordReversalScore = (newScore) => {
-    setWordReversalScore(newScore);
-    chrome.storage.local.set({ wordReversalScore: newScore });
-
-    setSeverity(Math.min((newScore + confusableLetterScore) / 2, 100));
-  };
+ 
 
   const updateConfusableLetterScore = (newScore) => {
     setConfusableLetterScore(newScore);
@@ -86,7 +92,7 @@ const Popup = () => {
   }
 
   if (screen === "wordReversalTest") {
-    return <WordReversalTest goBack={() => setScreen("main")} updateSeverity={updateWordReversalScore} />;
+    return <WordReversalTest goBack={() => setScreen("main")}  />;
   }
 
   if (screen === "confusableLetterTest") {
@@ -183,10 +189,10 @@ const Popup = () => {
 
       <hr />
       <h4>Test Scores:</h4>
-      <p>🌀 <b>Word Reversal Score:</b> {wordReversalScore}</p>
-      <p>🔠 <b>Confusable Letter Score:</b> {confusableLetterScore}</p>
-      <p>🔠 <b>Reading Score:</b> {readingScore}</p>
-      <h4>🚀 Combined Severity Score: {severity}</h4>
+      <p>🌀 <b>Word Reversal Score:</b> {savedScore}</p>
+      <p>🔠 <b>Confusable Letter Score:</b> {finalConfusedScore}</p>
+      <p>🔠 <b>Reading Score:</b> {finalReadingScore}</p>
+      <h4>🚀 Combined Severity Score: {averageScore}</h4>
     </div>
   );
 };

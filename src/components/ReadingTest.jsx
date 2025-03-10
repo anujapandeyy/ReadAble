@@ -5,7 +5,7 @@ export const getReadingScore = () => {
   return parseInt(localStorage.getItem("readingScore")) || 0;
 };
 
-// Array of meaningful test paragraphs
+// Array of test paragraphs
 const testParagraphs = [
   "Reading is a fundamental skill that shapes our ability to learn, comprehend, and communicate. Studies have shown that individuals who read regularly develop a richer vocabulary and improved cognitive function. Whether it is fiction, non-fiction, or academic material, reading enhances our understanding of the world around us and fosters creativity.",
   
@@ -36,7 +36,7 @@ const ReadingTest = ({ goBack, onTestComplete }) => {
     if (!startTime) return;
 
     const endTime = Date.now();
-    const timeTaken = (endTime - startTime) / 1000; // Time in seconds
+    const timeTaken = (endTime - startTime) / 1000; // Convert milliseconds to seconds
 
     const words = selectedParagraph.split(" ").length;
     const wordsPerMinute = (words / timeTaken) * 60;
@@ -44,11 +44,14 @@ const ReadingTest = ({ goBack, onTestComplete }) => {
     // Scoring: Faster reading earns a higher score (out of 20)
     let score = Math.min(20, Math.max(0, Math.round(wordsPerMinute / 10))); 
 
+    // ✅ Store final score in local storage
     localStorage.setItem("readingScore", score);
+
+    // ✅ Update state with final score
     setReadingScore(score);
     setTestCompleted(true);
 
-    // Pass the final score to the parent component
+    // ✅ Pass final score to parent component
     onTestComplete(score);
   };
 
@@ -76,7 +79,7 @@ const ReadingTest = ({ goBack, onTestComplete }) => {
       ) : (
         <>
           <h2 className="text-green-600 font-bold mt-4">🎉 Test Completed!</h2>
-          <p className="text-lg font-bold">Your Score: {readingScore}</p>
+          <p className="text-lg font-bold">Your Score: {readingScore} / 20</p>
           <button 
             onClick={goBack} 
             className="mt-4 bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition duration-300"
@@ -89,5 +92,5 @@ const ReadingTest = ({ goBack, onTestComplete }) => {
   );
 };
 
-
 export default ReadingTest;
+

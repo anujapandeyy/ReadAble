@@ -51,13 +51,17 @@ const ConfusableLetterTest = ({ goBack, onTestComplete }) => {
       setScore(newScore);
       setCurrentQuestion(currentQuestion + 1);
     } else {
-      // Finalize score and store in local storage
+      // Ensure score doesn't exceed 20
       const finalScore = Math.min(newScore, 20);
+
+      // ✅ Save final score in local storage
       localStorage.setItem("confusableLetterScore", finalScore);
+
+      // ✅ Update state with the final score
       setScore(finalScore);
       setTestDone(true);
 
-      // Pass the final score to the parent component
+      // ✅ Pass the final score to the parent component
       onTestComplete(finalScore);
     }
   };
@@ -84,8 +88,10 @@ const ConfusableLetterTest = ({ goBack, onTestComplete }) => {
       ) : (
         <>
           <h2 className="text-green-600 font-bold mt-4">Test Completed!</h2>
-          <button onClick={goBack}>Go Back</button>
-          <p className="text-lg font-bold">Your Score: {score}</p>
+          <p className="text-lg font-bold">Your Score: {score} / 20</p>
+          <button onClick={goBack} className="mt-4 bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-700">
+            Go Back
+          </button>
         </>
       )}
     </div>
@@ -93,3 +99,4 @@ const ConfusableLetterTest = ({ goBack, onTestComplete }) => {
 };
 
 export default ConfusableLetterTest;
+
