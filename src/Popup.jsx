@@ -101,6 +101,39 @@ const Popup = () => {
 
     setSeverity(Math.min((wordReversalScore + newScore) / 2, 100));
   };
+  const autoAdjustSettings = () => {
+    let newFont = "Arial"; 
+    let newSpacing = 1;
+    let newBgColor = "#ffffff";
+    let newTextColor = "#000000";
+  
+    // If severity is high (low scores), apply stronger readability adjustments
+    if (severity < 50) { 
+      newFont = "OpenDyslexic"; 
+      newSpacing = 2; 
+      newBgColor = "#F5F5DC"; // Light beige for reduced contrast
+      newTextColor = "#333333"; // Dark gray for softer contrast
+    } else if (severity < 70) { 
+      newFont = "Comic Sans MS"; 
+      newSpacing = 1.5; 
+      newBgColor = "#f0f0f0"; 
+      newTextColor = "#222222";
+    }
+  
+    setFont(newFont);
+    setSpacing(newSpacing);
+    setBgColor(newBgColor);
+    setTextColor(newTextColor);
+  
+    // Save settings to storage
+    chrome.storage.sync.set({
+      font: newFont,
+      spacing: newSpacing,
+      bgColor: newBgColor,
+      textColor: newTextColor,
+    });
+  };
+  
 
   if (screen === "summarization") {
     return <Summarization goBack={() => setScreen("main")} />;
@@ -201,6 +234,10 @@ const Popup = () => {
       >
         Reset
       </button>
+      <button onClick={autoAdjustSettings} style={{ width: "100%", marginTop: "5px", backgroundColor: "#4CAF50", color: "white" }}>
+  Auto Adjust
+</button>
+
 
       <hr />
 
