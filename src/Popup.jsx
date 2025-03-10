@@ -3,6 +3,7 @@ import Summarization from "./components/Summarization";
 import TextToSpeech from "./components/TextToSpeech";
 import WordReversalTest from "./components/WordReversalTest";
 import ConfusableLetterTest, { getConfusableLetterScore } from "./components/ConfusableLetterTest";
+import ReadingTest from "./components/ReadingTest";
 
 const Popup = () => {
   const [font, setFont] = useState("OpenDyslexic");
@@ -14,35 +15,29 @@ const Popup = () => {
   const [severity, setSeverity] = useState(50);
   const [screen, setScreen] = useState("main");
 
-  // Fetch individual test scores from storage
   useEffect(() => {
     chrome.storage.local.get(["wordReversalScore", "confusableLetterScore"], (data) => {
       const wordScore = data.wordReversalScore || 50;
-      const letterScore = getConfusableLetterScore(); // Fetch from localStorage
+      const letterScore = getConfusableLetterScore(); 
       setWordReversalScore(wordScore);
       setConfusableLetterScore(letterScore);
 
-      // Calculate combined severity
       const combinedSeverity = Math.min((wordScore + letterScore) / 2, 100);
       setSeverity(combinedSeverity);
     });
   }, []);
 
-  // Function to update Word Reversal Test Score
   const updateWordReversalScore = (newScore) => {
     setWordReversalScore(newScore);
     chrome.storage.local.set({ wordReversalScore: newScore });
 
-    // Recalculate severity
     setSeverity(Math.min((newScore + confusableLetterScore) / 2, 100));
   };
 
-  // Function to update Confusable Letter Test Score
   const updateConfusableLetterScore = (newScore) => {
     setConfusableLetterScore(newScore);
     chrome.storage.local.set({ confusableLetterScore: newScore });
 
-    // Recalculate severity
     setSeverity(Math.min((wordReversalScore + newScore) / 2, 100));
   };
 
