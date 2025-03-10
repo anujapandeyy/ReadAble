@@ -2,8 +2,11 @@ import { useState, useEffect } from "react";
 import Summarization from "./components/Summarization";
 import TextToSpeech from "./components/TextToSpeech";
 import WordReversalTest from "./components/WordReversalTest";
-import ConfusableLetterTest, { getConfusableLetterScore } from "./components/ConfusableLetterTest";
+import ConfusableLetterTest, {
+  getConfusableLetterScore,
+} from "./components/ConfusableLetterTest";
 import ReadingTest from "./components/ReadingTest";
+import { PieChart, Pie, Cell } from "recharts";
 
 const Popup = () => {
   const [font, setFont] = useState("OpenDyslexic");
@@ -16,44 +19,56 @@ const Popup = () => {
   const [severity, setSeverity] = useState(50);
   const [screen, setScreen] = useState("main");
 
-
   // Retrieve scores from localStorage and convert them to numbers
-const savedScore = parseInt(localStorage.getItem("finalWordReversalScore")) || 0;
-const finalConfusedScore = parseInt(localStorage.getItem("confusableLetterScore")) || 0;
-const finalReadingScore = parseInt(localStorage.getItem("readingScore")) || 0;
+  const savedScore =
+    parseInt(localStorage.getItem("finalWordReversalScore")) || 0;
+  const finalConfusedScore =
+    parseInt(localStorage.getItem("confusableLetterScore")) || 0;
+  const finalReadingScore = parseInt(localStorage.getItem("readingScore")) || 0;
 
-// Calculate the average score
-const totalTests = 3; // Number of tests
-const averageScore = ((savedScore + finalConfusedScore + finalReadingScore) / totalTests).toFixed(2);
+  // Calculate the average score
+  const totalTests = 3; // Number of tests
+  const averageScore = (
+    (savedScore + finalConfusedScore + finalReadingScore) /
+    totalTests
+  ).toFixed(2);
+  const total = savedScore + finalConfusedScore + finalReadingScore;
 
+  const data = [
+    { name: "Achieved", value: total, color: "#4CAF50" }, //green
+    { name: "Remaining", value: 60 - total, color: "#FF4C4C" }, //red
+  ];
 
   const applyChanges = () => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const url = new URL(tabs[0].url);
       const domain = url.hostname; // Get the domain name
-  
-      chrome.storage.sync.set({ [domain]: { font, spacing, bgColor, textColor } }, () => {
-        chrome.tabs.sendMessage(tabs[0].id, {
-          action: "apply",
-          font,
-          spacing,
-          bgColor,
-          textColor,
-        });
-      });
+
+      chrome.storage.sync.set(
+        { [domain]: { font, spacing, bgColor, textColor } },
+        () => {
+          chrome.tabs.sendMessage(tabs[0].id, {
+            action: "apply",
+            font,
+            spacing,
+            bgColor,
+            textColor,
+          });
+        }
+      );
     });
   };
-  
+
   const resetChanges = () => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const url = new URL(tabs[0].url);
       const domain = url.hostname;
-  
+
       chrome.storage.sync.remove(domain, () => {
         chrome.tabs.sendMessage(tabs[0].id, { action: "reset" });
       });
     });
-  
+
     setFont("OpenDyslexic");
     setSpacing(1);
     setBgColor("#ffffff");
@@ -61,20 +76,24 @@ const averageScore = ((savedScore + finalConfusedScore + finalReadingScore) / to
   };
 
   useEffect(() => {
-    chrome.storage.local.get(["wordReversalScore", "confusableLetterScore","readingScore"], (data) => {
-      const wordScore = data.wordReversalScore || 50;
-      const letterScore = getConfusableLetterScore();
-      const readScore = getReadingScore(); 
-      setWordReversalScore(wordScore);
-      setConfusableLetterScore(letterScore);
-      setReadingScore(readScore);
+    chrome.storage.local.get(
+      ["wordReversalScore", "confusableLetterScore", "readingScore"],
+      (data) => {
+        const wordScore = data.wordReversalScore || 50;
+        const letterScore = getConfusableLetterScore();
+        const readScore = getReadingScore();
+        setWordReversalScore(wordScore);
+        setConfusableLetterScore(letterScore);
+        setReadingScore(readScore);
 
-      const combinedSeverity = Math.min((wordScore + letterScore + readScore) / 3, 100);
-      setSeverity(combinedSeverity);
-    });
+        const combinedSeverity = Math.min(
+          (wordScore + letterScore + readScore) / 3,
+          100
+        );
+        setSeverity(combinedSeverity);
+      }
+    );
   }, []);
-
- 
 
   const updateConfusableLetterScore = (newScore) => {
     setConfusableLetterScore(newScore);
@@ -92,15 +111,25 @@ const averageScore = ((savedScore + finalConfusedScore + finalReadingScore) / to
   }
 
   if (screen === "wordReversalTest") {
-    return <WordReversalTest goBack={() => setScreen("main")}  />;
+    return <WordReversalTest goBack={() => setScreen("main")} />;
   }
 
   if (screen === "confusableLetterTest") {
-    return <ConfusableLetterTest goBack={() => setScreen("main")} onTestComplete={updateConfusableLetterScore} />;
+    return (
+      <ConfusableLetterTest
+        goBack={() => setScreen("main")}
+        onTestComplete={updateConfusableLetterScore}
+      />
+    );
   }
 
   if (screen === "readingTest") {
-    return <ReadingTest goBack={() => setScreen("main")} onTestComplete={updateConfusableLetterScore} />;
+    return (
+      <ReadingTest
+        goBack={() => setScreen("main")}
+        onTestComplete={updateConfusableLetterScore}
+      />
+    );
   }
 
   return (
@@ -160,39 +189,80 @@ const averageScore = ((savedScore + finalConfusedScore + finalReadingScore) / to
         This is a preview of how text will appear with your selected settings.
       </div>
 
-      <button onClick={() => applyChanges()} style={{ width: "100%", marginTop: "10px" }}>
+      <button
+        onClick={() => applyChanges()}
+        style={{ width: "100%", marginTop: "10px" }}
+      >
         Apply
       </button>
-      <button onClick={() => resetChanges()} style={{ width: "100%", marginTop: "5px" }}>
+      <button
+        onClick={() => resetChanges()}
+        style={{ width: "100%", marginTop: "5px" }}
+      >
         Reset
       </button>
 
       <hr />
 
       <button onClick={() => setScreen("summarization")}>Summarize Text</button>
-      <button onClick={() => setScreen("textToSpeech")} style={{ marginLeft: "5px" }}>
+      <button
+        onClick={() => setScreen("textToSpeech")}
+        style={{ marginLeft: "5px" }}
+      >
         Text to Speech
       </button>
 
       <hr />
 
       <h4>Dyslexia Tests</h4>
-      <button onClick={() => setScreen("wordReversalTest")} style={{ width: "100%", marginTop: "10px" }}>
+      <button
+        onClick={() => setScreen("wordReversalTest")}
+        style={{ width: "100%", marginTop: "10px" }}
+      >
         Start Word Reversal Test
       </button>
-      <button onClick={() => setScreen("confusableLetterTest")} style={{ width: "100%", marginTop: "5px" }}>
+      <button
+        onClick={() => setScreen("confusableLetterTest")}
+        style={{ width: "100%", marginTop: "5px" }}
+      >
         Start Confusable Letter Test
       </button>
-      <button onClick={() => setScreen("readingTest")} style={{ width: "100%", marginTop: "5px" }}>
+      <button
+        onClick={() => setScreen("readingTest")}
+        style={{ width: "100%", marginTop: "5px" }}
+      >
         Start Reading Test
       </button>
 
       <hr />
       <h4>Test Scores:</h4>
-      <p>🌀 <b>Word Reversal Score:</b> {savedScore}</p>
-      <p>🔠 <b>Confusable Letter Score:</b> {finalConfusedScore}</p>
-      <p>🔠 <b>Reading Score:</b> {finalReadingScore}</p>
+      <p>
+        🌀 <b>Word Reversal Score:</b> {savedScore}
+      </p>
+      <p>
+        🔠 <b>Confusable Letter Score:</b> {finalConfusedScore}
+      </p>
+      <p>
+        🔠 <b>Reading Score:</b> {finalReadingScore}
+      </p>
       <h4>🚀 Combined Severity Score: {averageScore}</h4>
+
+      <PieChart width={120} height={120}>
+  <Pie
+    data={data}
+    cx="50%"
+    cy="50%"
+    innerRadius={30}
+    outerRadius={50}
+    fill="#8884d8"
+    dataKey="value"
+  >
+    {data.map((entry, index) => (
+      <Cell key={`cell-${index}`} fill={entry.color} />
+    ))}
+  </Pie>
+</PieChart>
+
     </div>
   );
 };
