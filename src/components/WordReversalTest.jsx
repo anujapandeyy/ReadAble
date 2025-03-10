@@ -1,20 +1,44 @@
 import { useState } from "react";
 
 const WordReversalTest = ({ goBack, updateSeverity }) => {
-  const words = ["apple", "banana", "cherry", "grape", "orange"];
+  const words = ["apple", "banana", "cherry", "grape", "orange", "mango", "peach", "melon", "berry", "plum"];
   const reversedWords = words.map(word => word.split("").reverse().join(""));
 
   const [testStarted, setTestStarted] = useState(false);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
   const [scrambledWord, setScrambledWord] = useState("");
   const [correctWord, setCorrectWord] = useState("");
+  const [options, setOptions] = useState([]);
   const [startTime, setStartTime] = useState(null);
   const [severityScore, setSeverityScore] = useState(50); // Default severity
+  const [completed, setCompleted] = useState(false);
 
   const startTest = () => {
     setTestStarted(true);
-    let index = Math.floor(Math.random() * words.length);
-    setCorrectWord(words[index]);
-    setScrambledWord(reversedWords[index]);
+    setCurrentQuestion(0);
+    generateQuestion(0);
+  };
+
+  const generateQuestion = (index) => {
+    if (index >= 5) {
+      setCompleted(true);
+      return;
+    }
+
+    let wordIndex = Math.floor(Math.random() * words.length);
+    let correct = words[wordIndex];
+    let scrambled = reversedWords[wordIndex];
+
+    let shuffledOptions = [...words]
+      .filter(w => w !== correct)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3);
+    shuffledOptions.push(correct);
+    shuffledOptions.sort(() => Math.random() - 0.5);
+
+    setCorrectWord(correct);
+    setScrambledWord(scrambled);
+    setOptions(shuffledOptions);
     setStartTime(Date.now());
   };
 
@@ -27,15 +51,17 @@ const WordReversalTest = ({ goBack, updateSeverity }) => {
 
     let score = isCorrect ? Math.max(0, 10 - reactionTime) * 10 : 0;
 
-    // Adjust severity score
     let newSeverityScore = severityScore + (isCorrect ? -5 : 10);
     setSeverityScore(newSeverityScore);
-    
-    // Save to Chrome Storage
     chrome.storage.local.set({ wordReversalScore: newSeverityScore });
-
-    // Pass updated severity to parent
     updateSeverity(newSeverityScore);
+
+    if (currentQuestion < 4) {
+      setCurrentQuestion(prev => prev + 1);
+      generateQuestion(currentQuestion + 1);
+    } else {
+      setCompleted(true);
+    }
   };
 
   return (
@@ -43,10 +69,17 @@ const WordReversalTest = ({ goBack, updateSeverity }) => {
       <h2>Word Reversal Test</h2>
       {!testStarted ? (
         <button onClick={startTest}>Start Test</button>
+      ) : completed ? (
+        <div>
+          <h3>Test Completed!</h3>
+          <p>Final Severity Score: <strong>{severityScore}</strong></p>
+          <button onClick={goBack}>Go Back</button>
+        </div>
       ) : (
         <div>
-          <p>Identify this word: {scrambledWord}</p>
-          {words.sort(() => Math.random() - 0.5).map(option => (
+          <p>Question {currentQuestion + 1} of 5</p>
+          <p>Identify this word: <strong>{scrambledWord}</strong></p>
+          {options.map(option => (
             <button key={option} onClick={() => checkAnswer(option)}>
               {option}
             </button>
@@ -54,7 +87,6 @@ const WordReversalTest = ({ goBack, updateSeverity }) => {
         </div>
       )}
       <p>Current Severity Score: <strong>{severityScore}</strong></p>
-      <button onClick={goBack}>Go Back</button>
     </div>
   );
 };

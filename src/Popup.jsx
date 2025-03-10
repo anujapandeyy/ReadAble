@@ -3,6 +3,7 @@ import Summarization from "./components/Summarization";
 import TextToSpeech from "./components/TextToSpeech";
 import WordReversalTest from "./components/WordReversalTest";
 import ConfusableLetterTest, { getConfusableLetterScore } from "./components/ConfusableLetterTest";
+import ReadingTest from "./components/ReadingTest";
 
 const Popup = () => {
   const [font, setFont] = useState("OpenDyslexic");
@@ -11,38 +12,68 @@ const Popup = () => {
   const [textColor, setTextColor] = useState("#000000");
   const [wordReversalScore, setWordReversalScore] = useState(50);
   const [confusableLetterScore, setConfusableLetterScore] = useState(50);
+  const [readingScore, setReadingScore] = useState(50);
   const [severity, setSeverity] = useState(50);
   const [screen, setScreen] = useState("main");
 
-  // Fetch individual test scores from storage
+  const applyChanges = () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const url = new URL(tabs[0].url);
+      const domain = url.hostname; // Get the domain name
+  
+      chrome.storage.sync.set({ [domain]: { font, spacing, bgColor, textColor } }, () => {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          action: "apply",
+          font,
+          spacing,
+          bgColor,
+          textColor,
+        });
+      });
+    });
+  };
+  
+  const resetChanges = () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const url = new URL(tabs[0].url);
+      const domain = url.hostname;
+  
+      chrome.storage.sync.remove(domain, () => {
+        chrome.tabs.sendMessage(tabs[0].id, { action: "reset" });
+      });
+    });
+  
+    setFont("OpenDyslexic");
+    setSpacing(1);
+    setBgColor("#ffffff");
+    setTextColor("#000000");
+  };
+
   useEffect(() => {
-    chrome.storage.local.get(["wordReversalScore", "confusableLetterScore"], (data) => {
+    chrome.storage.local.get(["wordReversalScore", "confusableLetterScore","readingScore"], (data) => {
       const wordScore = data.wordReversalScore || 50;
-      const letterScore = getConfusableLetterScore(); // Fetch from localStorage
+      const letterScore = getConfusableLetterScore();
+      const readScore = getReadingScore(); 
       setWordReversalScore(wordScore);
       setConfusableLetterScore(letterScore);
+      setReadingScore(readScore);
 
-      // Calculate combined severity
-      const combinedSeverity = Math.min((wordScore + letterScore) / 2, 100);
+      const combinedSeverity = Math.min((wordScore + letterScore + readScore) / 3, 100);
       setSeverity(combinedSeverity);
     });
   }, []);
 
-  // Function to update Word Reversal Test Score
   const updateWordReversalScore = (newScore) => {
     setWordReversalScore(newScore);
     chrome.storage.local.set({ wordReversalScore: newScore });
 
-    // Recalculate severity
     setSeverity(Math.min((newScore + confusableLetterScore) / 2, 100));
   };
 
-  // Function to update Confusable Letter Test Score
   const updateConfusableLetterScore = (newScore) => {
     setConfusableLetterScore(newScore);
     chrome.storage.local.set({ confusableLetterScore: newScore });
 
-    // Recalculate severity
     setSeverity(Math.min((wordReversalScore + newScore) / 2, 100));
   };
 
@@ -60,6 +91,10 @@ const Popup = () => {
 
   if (screen === "confusableLetterTest") {
     return <ConfusableLetterTest goBack={() => setScreen("main")} onTestComplete={updateConfusableLetterScore} />;
+  }
+
+  if (screen === "readingTest") {
+    return <ReadingTest goBack={() => setScreen("main")} onTestComplete={updateConfusableLetterScore} />;
   }
 
   return (
@@ -142,11 +177,15 @@ const Popup = () => {
       <button onClick={() => setScreen("confusableLetterTest")} style={{ width: "100%", marginTop: "5px" }}>
         Start Confusable Letter Test
       </button>
+      <button onClick={() => setScreen("readingTest")} style={{ width: "100%", marginTop: "5px" }}>
+        Start Reading Test
+      </button>
 
       <hr />
       <h4>Test Scores:</h4>
       <p>🌀 <b>Word Reversal Score:</b> {wordReversalScore}</p>
       <p>🔠 <b>Confusable Letter Score:</b> {confusableLetterScore}</p>
+      <p>🔠 <b>Reading Score:</b> {readingScore}</p>
       <h4>🚀 Combined Severity Score: {severity}</h4>
     </div>
   );
