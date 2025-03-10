@@ -102,29 +102,29 @@ const Popup = () => {
     setSeverity(Math.min((wordReversalScore + newScore) / 2, 100));
   };
   const autoAdjustSettings = () => {
-    let newFont = "Arial"; 
+    let newFont = "Arial";
     let newSpacing = 1;
     let newBgColor = "#ffffff";
     let newTextColor = "#000000";
-  
+
     // If severity is high (low scores), apply stronger readability adjustments
-    if (severity < 50) { 
-      newFont = "OpenDyslexic"; 
-      newSpacing = 2; 
+    if (severity < 50) {
+      newFont = "OpenDyslexic";
+      newSpacing = 2;
       newBgColor = "#F5F5DC"; // Light beige for reduced contrast
       newTextColor = "#333333"; // Dark gray for softer contrast
-    } else if (severity < 70) { 
-      newFont = "Comic Sans MS"; 
-      newSpacing = 1.5; 
-      newBgColor = "#f0f0f0"; 
+    } else if (severity < 70) {
+      newFont = "Comic Sans MS";
+      newSpacing = 1.5;
+      newBgColor = "#f0f0f0";
       newTextColor = "#222222";
     }
-  
+
     setFont(newFont);
     setSpacing(newSpacing);
     setBgColor(newBgColor);
     setTextColor(newTextColor);
-  
+
     // Save settings to storage
     chrome.storage.sync.set({
       font: newFont,
@@ -133,7 +133,6 @@ const Popup = () => {
       textColor: newTextColor,
     });
   };
-  
 
   if (screen === "summarization") {
     return <Summarization goBack={() => setScreen("main")} />;
@@ -234,10 +233,17 @@ const Popup = () => {
       >
         Reset
       </button>
-      <button onClick={autoAdjustSettings} style={{ width: "100%", marginTop: "5px", backgroundColor: "#4CAF50", color: "white" }}>
-  Auto Adjust
-</button>
-
+      <button
+        onClick={autoAdjustSettings}
+        style={{
+          width: "100%",
+          marginTop: "5px",
+          backgroundColor: "#4CAF50",
+          color: "white",
+        }}
+      >
+        Auto Adjust
+      </button>
 
       <hr />
 
@@ -247,6 +253,14 @@ const Popup = () => {
         style={{ marginLeft: "5px" }}
       >
         Text to Speech
+      </button>
+      <button
+        onClick={() =>
+          window.open("https://ocr-extraction.vercel.app/", "_blank")
+        }
+        style={{ marginLeft: "5px" }}
+      >
+        OCR
       </button>
 
       <hr />
@@ -285,21 +299,20 @@ const Popup = () => {
       <h4>🚀 Combined Severity Score: {averageScore}</h4>
 
       <PieChart width={120} height={120}>
-  <Pie
-    data={data}
-    cx="50%"
-    cy="50%"
-    innerRadius={30}
-    outerRadius={50}
-    fill="#8884d8"
-    dataKey="value"
-  >
-    {data.map((entry, index) => (
-      <Cell key={`cell-${index}`} fill={entry.color} />
-    ))}
-  </Pie>
-</PieChart>
-
+        <Pie
+          data={data}
+          cx="50%"
+          cy="50%"
+          innerRadius={30}
+          outerRadius={50}
+          fill="#8884d8"
+          dataKey="value"
+        >
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={entry.color} />
+          ))}
+        </Pie>
+      </PieChart>
     </div>
   );
 };
