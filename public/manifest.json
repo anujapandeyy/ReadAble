@@ -2,24 +2,31 @@
   "name": "ReadAble",
   "version": "1.0.0",
   "author": "Anuja Pandey",
-  "description": "A dyslexia friendly Chrome Extension",
+  "description": "A dyslexia-friendly Chrome Extension",
   "manifest_version": 3,
   "permissions": ["storage", "scripting", "activeTab"],
-    "host_permissions": [
-        "http://*/*",
-        "https://*/*"
-        ],
-    "action": {
-      "default_popup": "index.html"
-    },
-    "background": {
-      "service_worker": "background.js"
-    },
-    "content_scripts": [
-      {
-        "matches": ["<all_urls>"],
-        "js": ["content.js"]
-      }
-    ]
-  }
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "action": {
+    "default_popup": "index.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["test.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
+
   
