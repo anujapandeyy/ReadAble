@@ -7,7 +7,8 @@ const Summarization = ({ goBack }) => {
   const summarizeText = async () => {
     if (!text.trim()) return;
 
-    const apiKey = "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";
+    const apiKey = import.meta.env.VITE_HUGGINGFACE_API_KEY;
+
     const apiUrl =
       "https://api-inference.huggingface.co/models/facebook/bart-large-cnn";
 
